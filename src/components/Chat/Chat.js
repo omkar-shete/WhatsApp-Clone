@@ -1,3 +1,5 @@
+import firebase from 'firebase/compat/app';
+
 //mui
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { Avatar, IconButton } from '@material-ui/core';
@@ -9,25 +11,63 @@ import MicNoneIcon from '@mui/icons-material/MicNone';
 
 //css
 import "./Chat.css"
+import { useParams } from 'react-router-dom';
+import db from '../../firebase';
+import { useStateValue } from '../../StateProvider';
 
 
 // -------FUNC COMPO EXP DEF-------------
 export default function Chat() {
 
-  const [seed, setSeed] = useState("");
+  const [{user}, dispatch] = useStateValue(); //global state
 
+  const {roomId} = useParams();
+
+  const [seed, setSeed] = useState("");  //for emoji
   const [msgInp, setMsgInp] = useState("");
+  const [roomName, setRoomName] = useState("");
+  const [messages, setMessages] = useState([]); //array of obj havng msg info
+
 
   useEffect(() => {
-    setSeed(
-      Math.floor(Math.random()*2000)
-      )
-  }, []);
+    if(roomId){
+      //get room name
+      db.collection('rooms').doc(roomId).onSnapshot( snap=>{
+        setRoomName( snap.data().roomName);
+      } )
+      
+      //get messages data like name msg time inside array of obj
+      db.collection('rooms').doc(roomId).collection('messages').orderBy('timestamp','asc').onSnapshot(
+        snap => (setMessages (snap.docs.map( doc=>doc.data() ))))
+        // snap => {let m = snap.docs.map( doc=>doc.data() );
+        //   setMessages(m);
+        //   console.log(m);}
+      // )
+    };
+
+    return ()=>{setRoomName(''); setMessages([]);}
+  }, [roomId])
+  
+  
+
+  useEffect(() => {
+    setSeed(roomId);
+  }, [roomId]);
+
 
   const sendMessage = (e) => {
     e.preventDefault(); //refresh form fubmit
+    db.collection('rooms').doc(roomId).collection('messages').add(
+      {
+        message: msgInp,
+        name: user.displayName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      }
+    )
     setMsgInp("");
   }
+
+
   
 
   //--------------RETURN-------------
@@ -41,8 +81,8 @@ export default function Chat() {
         <Avatar src={`https://avatars.dicebear.com/api/avataaars/${seed}.svg`}/>
 
         <div className="chat__headerInfo">
-          <h3>Room Name</h3>
-          <p>Last seen at...</p>
+          <h3>{roomName}</h3>
+          <p>Last seen at {new Date(messages[messages.length-1]?.timestamp?.toDate()).toUTCString()}</p>
         </div>
 
         <div className="chat__headerRight">
@@ -59,12 +99,15 @@ export default function Chat() {
 
     {/* chat body--------------------   */}
       <div className="chat__body">
-
-      <p className={`chat__message ${true && "chat__sent"}`}> 
-        <span className="chat__name ">omkar</span>
-        hi
-        <span className="chat__timestamp">5:20</span>
-      </p>
+        {messages.map( (msg)=>
+          (
+            <p className={`chat__message ${msg.name===user.displayName && "chat__sent"}`} key={msg.timestamp}> 
+              <span className="chat__name ">{msg.name}</span>
+              {msg.message}
+              <span className="chat__timestamp">{new Date (msg.timestamp?.toDate()).toUTCString()}</span>
+            </p>
+          )
+        )}
 
       </div>
 

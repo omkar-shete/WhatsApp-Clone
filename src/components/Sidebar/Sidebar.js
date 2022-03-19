@@ -12,22 +12,43 @@ import { Avatar, IconButton, Input, OutlinedInput, TextField } from "@material-u
 
 
 //
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Sidebarchat from "./SidebarChat";
+import db from "../../firebase";
+import { useStateValue } from "../../StateProvider";
 //
 
-//mui input styling
-// const StyledInputElement = styled('input')(
-//   () => `
-//   border: none;
-//   margin-left: 10px;
-//   &:focus{border: none;}`
-// )
+
 
 
 // ------------EXPORT DEF COMPO FN------------
 export default function Sidebar() {
 
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = 
+    db.collection('rooms').onSnapshot( snap => (
+      setRooms( snap.docs.map( doc=> (             //return array of objects 
+        {
+          id: doc.id,
+          data: doc.data() 
+        })
+      ))
+    ));
+
+    return () => {unsubscribe()}; //run this thing when comp unmounts..here, run the same thing
+  }, []);
+  
+
+
+  //getting user from global state storage
+  const [{user}, dispatch] = useStateValue();
+
+
+
+
+  //--------------------RETURN-----------------
   return (
     <div className="sidebar">
 
@@ -35,7 +56,8 @@ export default function Sidebar() {
       <div className="sidebar__header">
 
         {/* <AccountCircleIcon sx={{ fontSize: 48 }}/> */}
-        <Avatar/>
+        <Avatar src={user?.photoURL}/>   
+        {/* user.photoURL  ..'?' means if present */}
 
         <div className="sidebar__headerRight">
           <IconButton> <DonutLargeIcon/>
@@ -47,6 +69,7 @@ export default function Sidebar() {
         </div>
 
       </div>
+
 
     {/* 2.search ---------- */}
       <div className="sidebar__search">
@@ -60,10 +83,15 @@ export default function Sidebar() {
         </div>
       </div>
 
+
     {/* 3.chats ------------ */}
       <div className="sidebar__chats">
         <Sidebarchat addNewChat/>
-        <Sidebarchat />
+
+        { rooms.map((room) => (
+          <Sidebarchat key={room.id} id={room.id} roomName={room.data.roomName}/>
+        ) ) }
+        
       </div>
 
     </div>

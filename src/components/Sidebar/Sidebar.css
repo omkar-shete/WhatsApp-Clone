@@ -8,7 +8,8 @@
 
 /* SIDEBAR HEADER ------------------- */
 .sidebar__header{
-  background-color: antiquewhite; 
+  /* background-color: antiquewhite;  */
+  background-color: #ebebeb;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -57,5 +58,6 @@
 .sidebar__chats{
   flex: 1;
   overflow: scroll;
+  background-color: white;
   /* background-color: aqua; */
 }
