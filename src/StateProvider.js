@@ -23,3 +23,11 @@ export const useStateValue = () => {
     useContext(StateContext)
     ) 
 }
+
+
+
+// We are using useReducer in value={} prop bcz
+// we want to be able to change it when new user login
+// The reducer, initialState could be declared here only...
+// Just for clean code they're declared somewhere else
+// Less confusing if they're here...
