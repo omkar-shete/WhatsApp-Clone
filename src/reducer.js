@@ -8,14 +8,15 @@ export const initialState = {
 
 
 
-//2-action types
+//action types..
+//just for avoiding typos & getting auto suggestion
 export const actionTypes = {
   SET_USER: "SET_USER"
 };
 
 
 
-//3-reducer (data manipulation)*************
+//2-reducer (data manipulation)*************
 const reducer = (state, action) => {
   // console.log(action);
   switch (action.type) {
@@ -32,3 +33,10 @@ const reducer = (state, action) => {
 };
 
 export default reducer;
+
+
+
+// this could've been in the state provider file ..
+// they're written in a separate file just for clean code
+// But why needed: bcz we want the value={} in the .provider to be dynamic
+// so that we can change the user value
